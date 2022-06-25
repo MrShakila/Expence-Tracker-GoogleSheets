@@ -15,6 +15,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool isTimeStarted = false;
+  final _amountController = TextEditingController();
+  final _nameController = TextEditingController();
+  bool _isIncome = false;
+
   void startLoading() {
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (GoogleSheetsApi.isLoading == false) {
@@ -25,22 +29,132 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _addNewTransaction1() {
+    GoogleSheetsApi.insert(
+        _nameController.text, _amountController.text, _isIncome);
+    setState(() {});
+  }
+
+  void addTrasaction() {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+              title: const Text('Add New Trasaction'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text('Income'),
+                        Switch(
+                            value: _isIncome,
+                            onChanged: (newValue) {
+                              setState(() {
+                                _isIncome = newValue;
+                              });
+                            }),
+                        const Text('Expence')
+                      ],
+                    ),
+                    SizedBox(
+                      height: 40,
+                      child: Center(
+                        child: TextField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                              hintText: 'What For',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12))),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    SizedBox(
+                      height: 40,
+                      child: Center(
+                        child: TextField(
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: false,
+                          ),
+                          controller: _amountController,
+                          decoration: InputDecoration(
+                              hintText: 'Amount',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12))),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                MaterialButton(
+                    color: Colors.grey[600],
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    }),
+                MaterialButton(
+                    color: Colors.grey[600],
+                    child: const Text(
+                      'Enter',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () {
+                      if (_amountController.text.isNotEmpty &&
+                          _nameController.text.isNotEmpty) {
+                        _addNewTransaction1();
+                        _amountController.clear();
+                        _nameController.clear();
+                        Navigator.of(context).pop();
+                      } else {
+                        const AlertDialog(
+                          content: Text('Please Fill All The Fields'),
+                          title: Text('Error'),
+                        );
+                      }
+                    })
+              ],
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (GoogleSheetsApi.isLoading == true && isTimeStarted == false) {
       startLoading();
     }
     return Scaffold(
+      floatingActionButton: ElevatedButton(
+        child: const Text('Add New Expence'),
+        onPressed: () {
+          return addTrasaction();
+        },
+      ),
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Column(children: [
-        const TopBlanceCard(
-          balance: ' \$ 5000',
-          income: '\$500',
-          expence: '\$100',
+        TopBlanceCard(
+          balance: ' \$' +
+              (GoogleSheetsApi.calculateIncome() -
+                      GoogleSheetsApi.calculateExpense())
+                  .toString(),
+          income: '\$' + GoogleSheetsApi.calculateIncome().toString(),
+          expence: '\$' + GoogleSheetsApi.calculateExpense().toString(),
         ),
         const SizedBox(
           height: 10,
@@ -77,16 +191,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           )),
-        ),
-        Container(
-          width: 80,
-          height: 80,
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-          ),
-          decoration: const BoxDecoration(
-              color: Colors.black54, shape: BoxShape.circle),
         ),
         const SizedBox(
           height: 10,

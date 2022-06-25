@@ -5,8 +5,7 @@ class MyTransactions extends StatelessWidget {
   final String amount;
   final String isIncomeOrExpence;
 
-  var isExpenceOrIncome;
-  MyTransactions({
+  const MyTransactions({
     Key? key,
     required this.transactionName,
     required this.amount,
@@ -44,16 +43,17 @@ class MyTransactions extends StatelessWidget {
                 ),
               ],
             ),
-            Text(
-              isIncomeOrExpence == 'income'
-                  ? '+ \$' + amount
-                  : '-  \$' + amount,
-              style: TextStyle(
-                  color: isIncomeOrExpence == 'income'
-                      ? Colors.green
-                      : Colors.redAccent,
-                  fontWeight: FontWeight.normal),
-            ),
+            isIncomeOrExpence == 'Income'
+                ? Text(
+                    '+ \$' + amount.trim(),
+                    style: const TextStyle(
+                        color: Colors.green, fontWeight: FontWeight.normal),
+                  )
+                : Text(
+                    '-  \$' + amount.trim(),
+                    style: const TextStyle(
+                        color: Colors.red, fontWeight: FontWeight.normal),
+                  )
           ],
         ),
       ),
